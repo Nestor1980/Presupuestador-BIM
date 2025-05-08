@@ -24,7 +24,7 @@ export interface UsoBIM {
   id: string;
   nombre: string;
   etapa_proyecto: ProjectPhase;
-  lod: LODLevel[];
+  lods_sugeridos: LODLevel[]; // Renamed from lod
   dependencias: string[];
   description?: string; // Optional: for tooltips or more info
 }

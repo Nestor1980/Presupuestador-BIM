@@ -1,6 +1,7 @@
+
 "use client";
 import { useBimContext } from '@/contexts/BimContext';
-import { LOD_LEVELS } from '@/config/constants';
+import { ALL_LOD_LEVELS } from '@/config/constants'; // Changed from LOD_LEVELS
 import { SectionCard } from './SectionCard';
 import { Layers, Scaling, Puzzle, Network, Construction, Building2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -40,7 +41,7 @@ export function LodVisualization() {
   return (
     <SectionCard title="Visualización LOD" description="Nivel de Desarrollo del Modelo BIM seleccionado." icon={Layers}>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-        {LOD_LEVELS.map(lod => (
+        {ALL_LOD_LEVELS.map(lod => ( // Changed from LOD_LEVELS to ALL_LOD_LEVELS
           <LodGraphic 
             key={lod} 
             level={lod} 

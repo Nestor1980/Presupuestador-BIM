@@ -1,14 +1,15 @@
+
 "use client";
 import { useBimContext } from '@/contexts/BimContext';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DEFAULT_LOD_HOURS, LOD_LEVELS } from '@/config/constants';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { LODLevel, LODHoursMap } from '@/types';
 import { SectionCard } from './SectionCard';
 import { Settings, DollarSign, Percent, Square, Layers, Edit3, SlidersHorizontal } from 'lucide-react';
+import { ALL_LOD_LEVELS } from '@/config/constants'; // Import for fallback
 
 export function BasicSettingsForm() {
   const {
@@ -20,14 +21,14 @@ export function BasicSettingsForm() {
     selectedLOD, setSelectedLOD,
     lodHoursMap, setLodHoursMap,
     actualLODHoursForSelected, setActualLODHoursForSelected,
-    currentLODHours
+    currentLODHours,
+    suggestedLodsForSelect
   } = useBimContext();
 
   const handleLODChange = (value: string) => {
     const newLOD = value as LODLevel;
     setSelectedLOD(newLOD);
-    // When LOD changes, reset actualLODHoursForSelected to the min of the new LOD
-    setActualLODHoursForSelected(lodHoursMap[newLOD]?.min || 0); 
+    // actualLODHoursForSelected will be updated by useEffect in BimContext
   };
 
   const handleLODHoursMapChange = (lod: LODLevel, type: 'min' | 'max', value: number) => {
@@ -37,13 +38,12 @@ export function BasicSettingsForm() {
       if (type === 'min') {
         newMap[lod] = { ...currentEntry, min: Math.max(0, value) };
         if (value > currentEntry.max) {
-          newMap[lod].max = value; // Ensure min is not greater than max
+          newMap[lod].max = value;
         }
-      } else { // type === 'max'
-        newMap[lod] = { ...currentEntry, max: Math.max(currentEntry.min, value) }; // Ensure max is not less than min
+      } else {
+        newMap[lod] = { ...currentEntry, max: Math.max(currentEntry.min, value) };
       }
       
-      // If the currently selected LOD's bounds changed, update actualLODHoursForSelected
       if (lod === selectedLOD) {
         const newActualMin = newMap[lod].min;
         const newActualMax = newMap[lod].max;
@@ -56,6 +56,8 @@ export function BasicSettingsForm() {
       return newMap;
     });
   };
+
+  const lodOptionsToDisplay = suggestedLodsForSelect.length > 0 ? suggestedLodsForSelect : ALL_LOD_LEVELS;
 
   return (
     <SectionCard title="Configuración Básica" description="Define los parámetros iniciales para tu presupuesto." icon={Settings}>
@@ -127,53 +129,61 @@ export function BasicSettingsForm() {
               <SelectValue placeholder="Selecciona LOD" />
             </SelectTrigger>
             <SelectContent>
-              {LOD_LEVELS.map(lod => (
-                <SelectItem key={lod} value={lod}>{lod}</SelectItem>
+              {lodOptionsToDisplay.map(lod => (
+                <SelectItem key={lod} value={lod}>
+                  {lod}
+                  {suggestedLodsForSelect.includes(lod) && lodOptionsToDisplay !== ALL_LOD_LEVELS && <span className="text-xs text-accent ml-2">(Sugerido)</span>}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {suggestedLodsForSelect.length > 0 && lodOptionsToDisplay !== ALL_LOD_LEVELS && (
+            <p className="text-xs text-muted-foreground">LODs sugeridos basados en los Usos BIM seleccionados.</p>
+          )}
         </div>
       </div>
 
-      <div className="mt-8 space-y-4">
-          <h3 className="text-lg font-semibold flex items-center"><SlidersHorizontal className="mr-2 h-5 w-5 text-primary" />Ajuste de Horas por LOD</h3>
-          <p className="text-sm text-muted-foreground">Modifica las horas base por LOD si es necesario. Estos valores son referencias que puedes ajustar según la complejidad del proyecto.</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {LOD_LEVELS.map((lod) => (
-            <Card key={lod} className={lod === selectedLOD ? 'border-primary shadow-lg' : ''}>
-              <CardHeader>
-                <CardTitle className="text-md">{lod}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <Label htmlFor={`lod-min-${lod}`}>Horas Mínimas</Label>
-                  <Input
-                    id={`lod-min-${lod}`}
-                    type="number"
-                    value={lodHoursMap[lod]?.min || 0}
-                    onChange={(e) => handleLODHoursMapChange(lod, 'min', parseFloat(e.target.value))}
-                    min="0"
-                    step="0.1"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`lod-max-${lod}`}>Horas Máximas</Label>
-                  <Input
-                    id={`lod-max-${lod}`}
-                    type="number"
-                    value={lodHoursMap[lod]?.max || 0}
-                    onChange={(e) => handleLODHoursMapChange(lod, 'max', parseFloat(e.target.value))}
-                    min={lodHoursMap[lod]?.min || 0}
-                    step="0.1"
-                    className="mt-1"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      {selectedLOD && (
+        <div className="mt-8 space-y-4">
+            <h3 className="text-lg font-semibold flex items-center"><SlidersHorizontal className="mr-2 h-5 w-5 text-primary" />Ajuste de Horas para {selectedLOD}</h3>
+            <p className="text-sm text-muted-foreground">Modifica las horas base para el {selectedLOD} seleccionado si es necesario. Estos valores son referencias que puedes ajustar según la complejidad del proyecto.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[selectedLOD].map((lod) => ( // Iterate only over the selectedLOD
+                <Card key={lod} className={'border-primary shadow-lg'}>
+                  <CardHeader>
+                    <CardTitle className="text-md">{lod}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <Label htmlFor={`lod-min-${lod}`}>Horas Mínimas</Label>
+                      <Input
+                        id={`lod-min-${lod}`}
+                        type="number"
+                        value={lodHoursMap[lod]?.min || 0}
+                        onChange={(e) => handleLODHoursMapChange(lod, 'min', parseFloat(e.target.value))}
+                        min="0"
+                        step="0.1"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`lod-max-${lod}`}>Horas Máximas</Label>
+                      <Input
+                        id={`lod-max-${lod}`}
+                        type="number"
+                        value={lodHoursMap[lod]?.max || 0}
+                        onChange={(e) => handleLODHoursMapChange(lod, 'max', parseFloat(e.target.value))}
+                        min={lodHoursMap[lod]?.min || 0}
+                        step="0.1"
+                        className="mt-1"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
         </div>
-      </div>
+      )}
       
       {selectedLOD && currentLODHours && (
         <div className="mt-8 space-y-3 p-4 border rounded-md bg-secondary/50">
@@ -183,11 +193,12 @@ export function BasicSettingsForm() {
           <Slider
             id="actualLODHours"
             min={currentLODHours.min}
-            max={currentLODHours.max}
-            step={0.5} // Or more granular if needed
+            max={currentLODHours.max === currentLODHours.min ? currentLODHours.min + 1 : currentLODHours.max} // Ensure max > min for slider
+            step={0.5}
             value={[actualLODHoursForSelected]}
             onValueChange={(value) => setActualLODHoursForSelected(value[0])}
             className="mt-2"
+            disabled={currentLODHours.min === currentLODHours.max}
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Min: {currentLODHours.min.toFixed(1)}h</span>

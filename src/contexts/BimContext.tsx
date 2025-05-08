@@ -1,15 +1,25 @@
 
 "use client";
-import React, { // Changed from "import type React from 'react';" and added React to the import
+import React, { 
   createContext,
   useContext,
   useState,
   useMemo,
   useCallback,
-  useEffect // Added useEffect to direct imports
+  useEffect
 } from 'react';
-import type { LODLevel, LODHoursMap, UsoBIM } from '@/types';
-import { DEFAULT_LOD_HOURS, INITIAL_LOD, INITIAL_VB, INITIAL_REGION_PERCENTAGE, INITIAL_DOLLAR_EXCHANGE_RATE, INITIAL_SURFACE_M2, BIM_USES_DATA, INITIAL_PROJECT_NAME } from '@/config/constants';
+import type { LODLevel, LODHoursMap } from '@/types';
+import { 
+  DEFAULT_LOD_HOURS, 
+  INITIAL_LOD, 
+  INITIAL_VB, 
+  INITIAL_REGION_PERCENTAGE, 
+  INITIAL_DOLLAR_EXCHANGE_RATE, 
+  INITIAL_SURFACE_M2, 
+  BIM_USES_DATA, 
+  INITIAL_PROJECT_NAME,
+  ALL_LOD_LEVELS // Ensure this is imported
+} from '@/config/constants';
 
 interface BimContextType {
   projectName: string;
@@ -27,14 +37,16 @@ interface BimContextType {
   lodHoursMap: LODHoursMap;
   setLodHoursMap: (map: LODHoursMap | ((prevMap: LODHoursMap) => LODHoursMap)) => void;
   currentLODHours: { min: number; max: number };
-  actualLODHoursForSelected: number; // Actual hours input by user for the selected LOD
+  actualLODHoursForSelected: number;
   setActualLODHoursForSelected: (hours: number) => void;
-  selectedBimUses: Set<string>; // Store IDs of selected BIM Uses
+  selectedBimUses: Set<string>;
   toggleBimUse: (useId: string) => void;
   totalCostUSD: number | null;
   totalCostLocal: number | null;
   calculateTotalCost: () => void;
   resetAll: () => void;
+  suggestedLodsForSelect: LODLevel[]; // LODs suggested by selected BIM uses for the dropdown
+  highlightedDependencies: Set<string>; // BIM Use IDs that are dependencies of selected uses
 }
 
 const BimContext = createContext<BimContextType | undefined>(undefined);
@@ -49,17 +61,18 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [lodHoursMap, setLodHoursMap] = useState<LODHoursMap>(DEFAULT_LOD_HOURS);
   
   const currentLODHours = useMemo(() => lodHoursMap[selectedLOD] || { min: 0, max: 0 }, [lodHoursMap, selectedLOD]);
-  
   const [actualLODHoursForSelected, setActualLODHoursForSelected] = useState<number>(currentLODHours.min);
 
-  useEffect(() => { // Changed from React.useEffect to useEffect
-    setActualLODHoursForSelected(lodHoursMap[selectedLOD]?.min || 0);
-  }, [selectedLOD, lodHoursMap]);
-
-
   const [selectedBimUses, setSelectedBimUses] = useState<Set<string>>(new Set());
+  const [suggestedLodsForSelect, setSuggestedLodsForSelect] = useState<LODLevel[]>(ALL_LOD_LEVELS);
+  const [highlightedDependencies, setHighlightedDependencies] = useState<Set<string>>(new Set());
+
   const [totalCostUSD, setTotalCostUSD] = useState<number | null>(null);
   const [totalCostLocal, setTotalCostLocal] = useState<number | null>(null);
+
+  useEffect(() => {
+    setActualLODHoursForSelected(lodHoursMap[selectedLOD]?.min || 0);
+  }, [selectedLOD, lodHoursMap]);
 
   const toggleBimUse = useCallback((useId: string) => {
     setSelectedBimUses(prevUses => {
@@ -69,8 +82,8 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (newUses.has(useId)) {
         newUses.delete(useId);
-        // Basic uncheck: if other uses depend on this, they are NOT automatically unchecked for simplicity.
-        // Advanced: Implement logic to warn or uncheck dependents.
+        // Basic uncheck: if other uses depend on this, they are NOT automatically unchecked.
+        // Users will need to manually uncheck them or they will become disabled if their dependency is removed.
       } else {
         newUses.add(useId);
         // Auto-select dependencies
@@ -93,20 +106,44 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   }, []);
   
-  const calculateTotalCost = useCallback(() => {
-    // Basic calculation: (VB * (1 + Region %)) * Actual LOD Hours for selected LOD
-    // This is a simplified calculation. A more complex one would sum hours for *all* selected BIM uses,
-    // considering their typical hours and LOD relevance.
-    // The prompt implies LOD hours are global for the model, not per BIM use.
-    // "Seteo incial de horas por Lod" suggests the primary driver for hours is the overall model LOD.
+  useEffect(() => {
+    const newSuggestedLods = new Set<LODLevel>();
+    const newHighlightedDeps = new Set<string>();
 
+    selectedBimUses.forEach(useId => {
+      const bimUse = BIM_USES_DATA.find(u => u.id === useId);
+      if (bimUse) {
+        bimUse.lods_sugeridos.forEach(lod => newSuggestedLods.add(lod));
+        bimUse.dependencias.forEach(depId => newHighlightedDeps.add(depId));
+      }
+    });
+
+    const sortedSuggestedLods = Array.from(newSuggestedLods).sort((a, b) => {
+        const aNum = parseInt(a.match(/\d+/)?.[0] || '0');
+        const bNum = parseInt(b.match(/\d+/)?.[0] || '0');
+        return aNum - bNum;
+    });
+
+    setHighlightedDependencies(newHighlightedDeps);
+
+    if (sortedSuggestedLods.length > 0) {
+      setSuggestedLodsForSelect(sortedSuggestedLods);
+      if (!sortedSuggestedLods.includes(selectedLOD)) {
+        setSelectedLOD(sortedSuggestedLods[0]);
+      }
+    } else {
+      setSuggestedLodsForSelect(ALL_LOD_LEVELS);
+      // If no suggestions, ensure selectedLOD is still valid or reset
+      if (!ALL_LOD_LEVELS.includes(selectedLOD)){
+        setSelectedLOD(INITIAL_LOD);
+      }
+    }
+  }, [selectedBimUses, selectedLOD]);
+
+
+  const calculateTotalCost = useCallback(() => {
     const regionalAdjustedVB = valorBasico * (1 + regionPercentage / 100);
     const costUSD = regionalAdjustedVB * actualLODHoursForSelected;
-    
-    // Placeholder for complexity factor based on surfaceM2 or number of BIM uses
-    // For now, surfaceM2 is just an input field, not directly in calculation logic as per prompt's formula structure.
-    // For now, selectedBimUses count is not directly in calculation logic, could be a multiplier.
-
     setTotalCostUSD(costUSD);
     setTotalCostLocal(costUSD * dollarExchangeRate);
   }, [valorBasico, regionPercentage, actualLODHoursForSelected, dollarExchangeRate]);
@@ -119,11 +156,19 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSurfaceM2(INITIAL_SURFACE_M2);
     setSelectedLOD(INITIAL_LOD);
     setLodHoursMap(DEFAULT_LOD_HOURS);
-    setActualLODHoursForSelected(DEFAULT_LOD_HOURS[INITIAL_LOD].min);
+    // actualLODHoursForSelected will be reset by its useEffect based on INITIAL_LOD and DEFAULT_LOD_HOURS
     setSelectedBimUses(new Set());
+    setSuggestedLodsForSelect(ALL_LOD_LEVELS); // Reset suggested LODs to all
+    setHighlightedDependencies(new Set());
     setTotalCostUSD(null);
     setTotalCostLocal(null);
   }, []);
+
+  useEffect(() => {
+    // This effect ensures actualLODHoursForSelected is updated when selectedLOD changes.
+    // It needs to run after selectedLOD might have been changed by the BIM use selection logic.
+    setActualLODHoursForSelected(lodHoursMap[selectedLOD]?.min || 0);
+  }, [selectedLOD, lodHoursMap]);
 
 
   const contextValue = useMemo(() => ({
@@ -139,10 +184,13 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     selectedBimUses, toggleBimUse,
     totalCostUSD, totalCostLocal, calculateTotalCost,
     resetAll,
+    suggestedLodsForSelect,
+    highlightedDependencies,
   }), [
     projectName, valorBasico, regionPercentage, dollarExchangeRate, surfaceM2,
     selectedLOD, lodHoursMap, currentLODHours, actualLODHoursForSelected,
-    selectedBimUses, toggleBimUse, totalCostUSD, totalCostLocal, calculateTotalCost, resetAll
+    selectedBimUses, toggleBimUse, totalCostUSD, totalCostLocal, calculateTotalCost, resetAll,
+    suggestedLodsForSelect, highlightedDependencies
   ]);
 
   return <BimContext.Provider value={contextValue}>{children}</BimContext.Provider>;
@@ -155,4 +203,3 @@ export const useBimContext = (): BimContextType => {
   }
   return context;
 };
-

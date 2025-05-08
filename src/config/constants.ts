@@ -1,6 +1,8 @@
+
 import type { LODLevel, LODHoursMap, UsoBIM, ProjectPhase } from '@/types';
 
-export const LOD_LEVELS: LODLevel[] = [
+// Master list of all possible LOD Levels
+export const ALL_LOD_LEVELS: LODLevel[] = [
   "LoD 100",
   "LoD 200",
   "LoD 300",
@@ -26,31 +28,31 @@ export const PROJECT_PHASES: ProjectPhase[] = [
 ];
 
 export const BIM_USES_DATA: UsoBIM[] = [
-  { id: "1", nombre: "Modelado de estado actual", etapa_proyecto: "Planificación", lod: ["LoD 100", "LoD 200"], dependencias: [] },
-  { id: "2", nombre: "Estimación de costes", etapa_proyecto: "Planificación", lod: ["LoD 100", "LoD 200"], dependencias: ["1"] },
-  { id: "3", nombre: "Planificación de fases", etapa_proyecto: "Planificación", lod: ["LoD 100", "LoD 200"], dependencias: ["1"] },
-  { id: "4", nombre: "Programación", etapa_proyecto: "Planificación", lod: ["LoD 100", "LoD 200"], dependencias: ["1"] },
-  { id: "5", nombre: "Análisis de ubicación", etapa_proyecto: "Planificación", lod: ["LoD 100"], dependencias: ["1"] },
-  { id: "6", nombre: "Auditoría de diseño", etapa_proyecto: "Diseño", lod: ["LoD 200", "LoD 300"], dependencias: ["5"] },
-  { id: "7", nombre: "Revisión de diseño", etapa_proyecto: "Diseño", lod: ["LoD 200", "LoD 300"], dependencias: ["6"] },
-  { id: "8", nombre: "Análisis estructural", etapa_proyecto: "Diseño", lod: ["LoD 200", "LoD 300"], dependencias: ["6"] },
-  { id: "9", nombre: "Análisis de iluminación", etapa_proyecto: "Diseño", lod: ["LoD 200", "LoD 300"], dependencias: ["6"] },
-  { id: "10", nombre: "Análisis energético", etapa_proyecto: "Diseño", lod: ["LoD 200", "LoD 300"], dependencias: ["6"] },
-  { id: "11", nombre: "Análisis mecánico", etapa_proyecto: "Diseño", lod: ["LoD 200", "LoD 300"], dependencias: ["6"] },
-  { id: "12", nombre: "Otros análisis de ingeniería", etapa_proyecto: "Diseño", lod: ["LoD 200", "LoD 300"], dependencias: ["6"] },
-  { id: "13", nombre: "Evaluación de sostenibilidad", etapa_proyecto: "Diseño", lod: ["LoD 200", "LoD 300"], dependencias: ["6"] },
-  { id: "14", nombre: "Validación de la normativa", etapa_proyecto: "Diseño", lod: ["LoD 200", "LoD 300"], dependencias: ["6"] },
-  { id: "15", nombre: "Coordinación 3D", etapa_proyecto: "Diseño", lod: ["LoD 200", "LoD 300"], dependencias: ["6"] },
-  { id: "16", nombre: "Planificación de obra", etapa_proyecto: "Construcción", lod: ["LoD 300", "LoD 350"], dependencias: ["3", "4"] },
-  { id: "17", nombre: "Diseño de sistemas constructivos", etapa_proyecto: "Construcción", lod: ["LoD 300", "LoD 400"], dependencias: ["6", "7", "8"] },
-  { id: "18", nombre: "Fabricación digital", etapa_proyecto: "Construcción", lod: ["LoD 350", "LoD 400"], dependencias: ["17"] },
-  { id: "19", nombre: "Control y planificación de obra", etapa_proyecto: "Construcción", lod: ["LoD 300", "LoD 400"], dependencias: ["16"] },
-  { id: "20", nombre: "Modelado As Built", etapa_proyecto: "Construcción", lod: ["LoD 400", "LoD 500"], dependencias: ["18", "19"] },
-  { id: "21", nombre: "Programación de mantenimiento", etapa_proyecto: "Operación", lod: ["LoD 500"], dependencias: ["20"] },
-  { id: "22", nombre: "Análisis de sistemas", etapa_proyecto: "Operación", lod: ["LoD 500"], dependencias: ["21"] },
-  { id: "23", nombre: "Gestión de activos", etapa_proyecto: "Operación", lod: ["LoD 500"], dependencias: ["20", "21"] },
-  { id: "24", nombre: "Administración y gestión de espacios", etapa_proyecto: "Operación", lod: ["LoD 500"], dependencias: ["20", "21"] },
-  { id: "25", nombre: "Planificación y gestión de emergencias", etapa_proyecto: "Operación", lod: ["LoD 500"], dependencias: ["20", "21", "23"] },
+  { id: "1", nombre: "Modelado de estado actual", etapa_proyecto: "Planificación", lods_sugeridos: ["LoD 100", "LoD 200"], dependencias: [] },
+  { id: "2", nombre: "Estimación de costes", etapa_proyecto: "Planificación", lods_sugeridos: ["LoD 100", "LoD 200"], dependencias: ["1"] },
+  { id: "3", nombre: "Planificación de fases", etapa_proyecto: "Planificación", lods_sugeridos: ["LoD 100", "LoD 200"], dependencias: ["1"] },
+  { id: "4", nombre: "Programación", etapa_proyecto: "Planificación", lods_sugeridos: ["LoD 100", "LoD 200"], dependencias: ["1"] },
+  { id: "5", nombre: "Análisis de ubicación", etapa_proyecto: "Planificación", lods_sugeridos: ["LoD 100"], dependencias: ["1"] },
+  { id: "6", nombre: "Auditoría de diseño", etapa_proyecto: "Diseño", lods_sugeridos: ["LoD 200", "LoD 300"], dependencias: ["5"] },
+  { id: "7", nombre: "Revisión de diseño", etapa_proyecto: "Diseño", lods_sugeridos: ["LoD 200", "LoD 300"], dependencias: ["6"] },
+  { id: "8", nombre: "Análisis estructural", etapa_proyecto: "Diseño", lods_sugeridos: ["LoD 200", "LoD 300"], dependencias: ["6"] },
+  { id: "9", nombre: "Análisis de iluminación", etapa_proyecto: "Diseño", lods_sugeridos: ["LoD 200", "LoD 300"], dependencias: ["6"] },
+  { id: "10", nombre: "Análisis energético", etapa_proyecto: "Diseño", lods_sugeridos: ["LoD 200", "LoD 300"], dependencias: ["6"] },
+  { id: "11", nombre: "Análisis mecánico", etapa_proyecto: "Diseño", lods_sugeridos: ["LoD 200", "LoD 300"], dependencias: ["6"] },
+  { id: "12", nombre: "Otros análisis de ingeniería", etapa_proyecto: "Diseño", lods_sugeridos: ["LoD 200", "LoD 300"], dependencias: ["6"] },
+  { id: "13", nombre: "Evaluación de sostenibilidad", etapa_proyecto: "Diseño", lods_sugeridos: ["LoD 200", "LoD 300"], dependencias: ["6"] },
+  { id: "14", nombre: "Validación de la normativa", etapa_proyecto: "Diseño", lods_sugeridos: ["LoD 200", "LoD 300"], dependencias: ["6"] },
+  { id: "15", nombre: "Coordinación 3D", etapa_proyecto: "Diseño", lods_sugeridos: ["LoD 200", "LoD 300"], dependencias: ["6"] },
+  { id: "16", nombre: "Planificación de obra", etapa_proyecto: "Construcción", lods_sugeridos: ["LoD 300", "LoD 350"], dependencias: ["3", "4"] },
+  { id: "17", nombre: "Diseño de sistemas constructivos", etapa_proyecto: "Construcción", lods_sugeridos: ["LoD 300", "LoD 400"], dependencias: ["6", "7", "8"] },
+  { id: "18", nombre: "Fabricación digital", etapa_proyecto: "Construcción", lods_sugeridos: ["LoD 350", "LoD 400"], dependencias: ["17"] },
+  { id: "19", nombre: "Control y planificación de obra", etapa_proyecto: "Construcción", lods_sugeridos: ["LoD 300", "LoD 400"], dependencias: ["16"] },
+  { id: "20", nombre: "Modelado As Built", etapa_proyecto: "Construcción", lods_sugeridos: ["LoD 400", "LoD 500"], dependencias: ["18", "19"] },
+  { id: "21", nombre: "Programación de mantenimiento", etapa_proyecto: "Operación", lods_sugeridos: ["LoD 500"], dependencias: ["20"] },
+  { id: "22", nombre: "Análisis de sistemas", etapa_proyecto: "Operación", lods_sugeridos: ["LoD 500"], dependencias: ["21"] },
+  { id: "23", nombre: "Gestión de activos", etapa_proyecto: "Operación", lods_sugeridos: ["LoD 500"], dependencias: ["20", "21"] },
+  { id: "24", nombre: "Administración y gestión de espacios", etapa_proyecto: "Operación", lods_sugeridos: ["LoD 500"], dependencias: ["20", "21"] },
+  { id: "25", nombre: "Planificación y gestión de emergencias", etapa_proyecto: "Operación", lods_sugeridos: ["LoD 500"], dependencias: ["20", "21", "23"] },
 ];
 
 export const INITIAL_PROJECT_NAME = "Mi Proyecto BIM";
