@@ -1,13 +1,12 @@
 
 "use client";
 import { useBimContext } from '@/contexts/BimContext';
-import { ALL_LOD_LEVELS, LOD_DESCRIPTIONS, LOD_REFERENCE_TEXT } from '@/config/constants';
+import { ALL_LOD_LEVELS, LOD_DESCRIPTIONS } from '@/config/constants';
 import { SectionCard } from './SectionCard';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Layers, Scaling, Puzzle, Network, Construction, Building2, Info } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
 
 interface LodGraphicProps {
   level: string;
@@ -78,16 +77,10 @@ export function LodVisualization() {
               <p className="text-muted-foreground">{currentLodDescription.bimForum}</p>
             </div>
           </CardContent>
-          <CardFooter className="flex-col items-start text-xs text-muted-foreground/80 space-y-2 pt-4 border-t">
-            <p><strong>Referencias:</strong></p>
-            <p>{LOD_REFERENCE_TEXT.aia}</p>
-            <Separator className="my-1" />
-            <p>{LOD_REFERENCE_TEXT.bimForumSpec}</p>
-            <p>{LOD_REFERENCE_TEXT.bimForumFeedback}</p>
-            <p>{LOD_REFERENCE_TEXT.bimForumCopyright}</p>
-          </CardFooter>
+          {/* Removed CardFooter containing references and copyright */}
         </Card>
       )}
     </SectionCard>
   );
 }
+

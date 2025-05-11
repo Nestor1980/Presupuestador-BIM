@@ -138,9 +138,11 @@ export const LOD_DESCRIPTIONS: {
   }
 };
 
-export const LOD_REFERENCE_TEXT = {
-  aia: "AIA Contract Document E201-2022, BIM Exhibit for Sharing Models with Project Participants, Where Model Versions May be Enumerated as a Contract Document. The LOD definitions are used by permission. Copyright © 2022. ACD Operations, LLC. All rights reserved.",
-  bimForumSpec: "Level of Development Specification Version: 2024 Part I PUBLIC COMMENT DRAFT. www.bimforum.org/lod",
-  bimForumFeedback: "Post feedback/comments to https://form.jotform.com/233625210758051",
-  bimForumCopyright: "Copyright © 2024 BIMForum. All rights reserved. This document is copyrighted under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License."
-};
+// Removed LOD_REFERENCE_TEXT
+// export const LOD_REFERENCE_TEXT = {
+//   aia: "AIA Contract Document E201-2022, BIM Exhibit for Sharing Models with Project Participants, Where Model Versions May be Enumerated as a Contract Document. The LOD definitions are used by permission. Copyright © 2022. ACD Operations, LLC. All rights reserved.",
+//   bimForumSpec: "Level of Development Specification Version: 2024 Part I PUBLIC COMMENT DRAFT. www.bimforum.org/lod",
+//   bimForumFeedback: "Post feedback/comments to https://form.jotform.com/233625210758051",
+//   bimForumCopyright: "Copyright © 2024 BIMForum. All rights reserved. This document is copyrighted under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License."
+// };
+
