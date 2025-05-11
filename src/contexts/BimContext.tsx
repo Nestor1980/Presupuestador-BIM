@@ -21,7 +21,7 @@ import {
   ALL_LOD_LEVELS
 } from '@/config/constants';
 import { collection, getDocs, query, where, doc, getDoc, setDoc, updateDoc, Timestamp, onSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase'; // Assuming you have firebase initialized in lib/firebase.ts
+import { db } from '@/lib/firebase'; 
 
 interface BimContextType {
   projectName: string;
@@ -43,7 +43,7 @@ interface BimContextType {
   setActualLODHoursForSelected: (hours: number) => void;
   selectedBimUses: Set<string>;
   toggleBimUse: (useId: string) => void;
-  bimUsesData: UsoBIM[]; // Store BIM uses from Firebase
+  bimUsesData: UsoBIM[]; 
   totalCostUSD: number | null;
   totalCostLocal: number | null;
   calculateTotalCost: () => void;
@@ -54,11 +54,10 @@ interface BimContextType {
   highlightedDependencies: Set<string>;
 }
 
-// Define UsoBIM type matching Firebase structure
 interface UsoBIM {
   id: string;
   nombre: string;
-  etapa_proyecto: string; // Or ProjectPhase if you map it
+  etapa_proyecto: string; 
   lods_sugeridos: LODLevel[];
   dependencias: string[];
 }
@@ -84,10 +83,9 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [totalCostUSD, setTotalCostUSD] = useState<number | null>(null);
   const [totalCostLocal, setTotalCostLocal] = useState<number | null>(null);
-  const [bimUsesData, setBimUsesData] = useState<UsoBIM[]>(BIM_USES_DATA); // Fallback to constants if Firebase fails
+  const [bimUsesData, setBimUsesData] = useState<UsoBIM[]>(BIM_USES_DATA); 
 
 
-  // Fetch BIM Uses from Firebase on mount
  useEffect(() => {
     const fetchBimUses = async () => {
       try {
@@ -100,17 +98,16 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (uses.length > 0) {
             setBimUsesData(uses);
           } else {
-            // Fallback to constants if Firebase is empty or error occurs
             setBimUsesData(BIM_USES_DATA);
           }
         }, (error) => {
           console.error("Error fetching BIM uses from Firebase: ", error);
-          setBimUsesData(BIM_USES_DATA); // Fallback on error
+          setBimUsesData(BIM_USES_DATA); 
         });
-        return () => unsubscribe(); // Cleanup listener on unmount
+        return () => unsubscribe(); 
       } catch (error) {
         console.error("Error setting up BIM uses listener: ", error);
-        setBimUsesData(BIM_USES_DATA); // Fallback on error
+        setBimUsesData(BIM_USES_DATA); 
       }
     };
     fetchBimUses();
@@ -129,22 +126,24 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (newUses.has(useId)) {
         newUses.delete(useId);
+        // Note: Deselecting dependencies automatically if they are no longer required by any other selected use
+        // can be complex. Current behavior: a use becomes disabled if its direct dependency is deselected.
+        // Highlighting and suggestion logic will update based on the remaining selected uses.
       } else {
         newUses.add(useId);
-        const checkDependencies = (dependencies: string[]) => {
+        // Recursively add dependencies
+        const addDepsRecursive = (dependencies: string[]) => {
           dependencies.forEach(depId => {
             if (!newUses.has(depId)) {
               newUses.add(depId);
-              const depUse = bimUsesData.find(u => u.id === depId);
-              if (depUse && depUse.dependencias.length > 0) {
-                checkDependencies(depUse.dependencias);
+              const depU = bimUsesData.find(u => u.id === depId);
+              if (depU && depU.dependencias.length > 0) {
+                addDepsRecursive(depU.dependencias);
               }
             }
           });
         };
-        if (bimUse.dependencias.length > 0) {
-          checkDependencies(bimUse.dependencias);
-        }
+        addDepsRecursive(bimUse.dependencias);
       }
       return newUses;
     });
@@ -154,11 +153,15 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newSuggestedLodsSet = new Set<LODLevel>();
     const newHighlightedDepsSet = new Set<string>();
 
-    selectedBimUses.forEach(useId => {
-      const bimUse = bimUsesData.find(u => u.id === useId);
+    selectedBimUses.forEach(selectedUseId => {
+      const bimUse = bimUsesData.find(u => u.id === selectedUseId);
       if (bimUse) {
         bimUse.lods_sugeridos.forEach(lod => newSuggestedLodsSet.add(lod));
-        bimUse.dependencias.forEach(depId => newHighlightedDepsSet.add(depId));
+        bimUse.dependencias.forEach(depId => {
+          if (selectedBimUses.has(depId)) { // Only mark for highlight if the dependency is actually selected
+            newHighlightedDepsSet.add(depId);
+          }
+        });
       }
     });
 
@@ -177,11 +180,13 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     } else {
       setSuggestedLodsForSelect(ALL_LOD_LEVELS);
-      if (!ALL_LOD_LEVELS.includes(selectedLOD)){
+      if (selectedLOD && !ALL_LOD_LEVELS.includes(selectedLOD)) {
+        setSelectedLOD(INITIAL_LOD);
+      } else if (!selectedLOD) {
         setSelectedLOD(INITIAL_LOD);
       }
     }
-  }, [selectedBimUses, bimUsesData]); // Changed dependency array
+  }, [selectedBimUses, bimUsesData, selectedLOD, setSelectedLOD]);
 
 
   const calculateTotalCost = useCallback(() => {
@@ -197,24 +202,22 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setRegionPercentage(INITIAL_REGION_PERCENTAGE);
     setDollarExchangeRate(INITIAL_DOLLAR_EXCHANGE_RATE);
     setSurfaceM2(INITIAL_SURFACE_M2);
-    setSelectedLOD(INITIAL_LOD);
     setLodHoursMap(DEFAULT_LOD_HOURS);
-    setSelectedBimUses(new Set());
-    // suggestedLodsForSelect and highlightedDependencies will be reset by the useEffect
+    setSelectedBimUses(new Set()); // This triggers useEffect to reset suggestedLods & selectedLOD
     setTotalCostUSD(null);
     setTotalCostLocal(null);
+    // actualLODHoursForSelected will be reset by its own useEffect when selectedLOD changes
   }, []);
 
    const saveBudget = useCallback(async (budgetId?: string) => {
     const budgetData = {
-      // usuario_id: currentUser?.uid || "anonymous", // Example, integrate auth later
       nombre_proyecto: projectName,
       configuracion: {
         valor_basico: valorBasico,
         porcentaje_region_seleccionado: regionPercentage,
         cotizacion_dolar: dollarExchangeRate,
         superficie_m2: surfaceM2,
-        horas_por_lod: lodHoursMap, // Storing the possibly customized map
+        horas_por_lod: lodHoursMap, 
       },
       lod_seleccionado: selectedLOD,
       horas_reales_lod: actualLODHoursForSelected,
@@ -231,7 +234,6 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.log("Budget updated with ID: ", budgetId);
         return budgetId;
       } else {
-        // Create a new budget document, Firestore will generate an ID
         const newBudgetRef = doc(collection(db, "presupuestos"));
         await setDoc(newBudgetRef, { ...budgetData, id: newBudgetRef.id });
         console.log("Budget saved with ID: ", newBudgetRef.id);
@@ -258,35 +260,33 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setDollarExchangeRate(config.cotizacion_dolar || INITIAL_DOLLAR_EXCHANGE_RATE);
         setSurfaceM2(config.superficie_m2 || INITIAL_SURFACE_M2);
         setLodHoursMap(config.horas_por_lod || DEFAULT_LOD_HOURS);
-
-        setSelectedLOD(data.lod_seleccionado || INITIAL_LOD);
-        // actualLODHoursForSelected will be set by its useEffect
-        setActualLODHoursForSelected(data.horas_reales_lod || (config.horas_por_lod?.[data.lod_seleccionado || INITIAL_LOD]?.min || 0));
-
-
+        
+        // Set selectedLOD first, then actualLODHoursForSelected will be updated by its useEffect
+        setSelectedLOD(data.lod_seleccionado || INITIAL_LOD); 
+        setActualLODHoursForSelected(data.horas_reales_lod !== undefined ? data.horas_reales_lod : (config.horas_por_lod?.[data.lod_seleccionado || INITIAL_LOD]?.min || 0));
+        
         setSelectedBimUses(new Set(data.usos_seleccionados || []));
         
-        // Costs will be recalculated or could be loaded if stored consistently
         setTotalCostUSD(data.costo_total_usd !== undefined ? data.costo_total_usd : null);
         setTotalCostLocal(data.costo_total_local !== undefined ? data.costo_total_local : null);
-        if (data.costo_total_usd === undefined) { // Recalculate if not stored
-            calculateTotalCost();
+        
+        if (data.costo_total_usd === undefined || data.costo_total_usd === null) {
+            calculateTotalCost(); // Recalculate if not present or null
         }
 
         console.log("Budget loaded: ", budgetId);
       } else {
         console.log("No such budget document!");
-        resetAll(); // Reset to defaults if budget not found
+        resetAll(); 
       }
     } catch (e) {
       console.error("Error loading budget: ", e);
-      resetAll(); // Reset on error
+      resetAll(); 
     }
-  }, [calculateTotalCost, resetAll]);
+  }, [calculateTotalCost, resetAll, setSelectedLOD]);
 
 
   useEffect(() => {
-    // This effect ensures actualLODHoursForSelected is updated when selectedLOD or its map range changes.
     const currentRange = lodHoursMap[selectedLOD] || { min: 0, max: 0 };
     if (actualLODHoursForSelected < currentRange.min || actualLODHoursForSelected > currentRange.max) {
        setActualLODHoursForSelected(currentRange.min);
@@ -307,7 +307,7 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentLODHours,
     actualLODHoursForSelected, setActualLODHoursForSelected,
     selectedBimUses, toggleBimUse,
-    bimUsesData, // Provide bimUsesData from Firebase/constants
+    bimUsesData, 
     totalCostUSD, totalCostLocal, calculateTotalCost,
     resetAll,
     saveBudget, loadBudget,
@@ -315,11 +315,11 @@ export const BimProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     highlightedDependencies,
   }), [
     projectName, valorBasico, regionPercentage, dollarExchangeRate, surfaceM2,
-    selectedLOD, lodHoursMap, currentLODHours, actualLODHoursForSelected,
+    selectedLOD, lodHoursMap, currentLODHours, actualLODHoursForSelected, // Removed setSelectedLOD from here
     selectedBimUses, toggleBimUse, bimUsesData, 
     totalCostUSD, totalCostLocal, calculateTotalCost, resetAll,
     saveBudget, loadBudget,
-    suggestedLodsForSelect, highlightedDependencies
+    suggestedLodsForSelect, highlightedDependencies, setSelectedLOD // Added setSelectedLOD back here
   ]);
 
   return <BimContext.Provider value={contextValue}>{children}</BimContext.Provider>;

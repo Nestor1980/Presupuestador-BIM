@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { LODLevel, LODHoursMap } from '@/types';
 import { SectionCard } from './SectionCard';
 import { Settings, DollarSign, Percent, Square, Layers, Edit3, SlidersHorizontal } from 'lucide-react';
-import { ALL_LOD_LEVELS } from '@/config/constants'; // Import for fallback
+import { ALL_LOD_LEVELS } from '@/config/constants'; 
 
 export function BasicSettingsForm() {
   const {
@@ -28,7 +28,6 @@ export function BasicSettingsForm() {
   const handleLODChange = (value: string) => {
     const newLOD = value as LODLevel;
     setSelectedLOD(newLOD);
-    // actualLODHoursForSelected will be updated by useEffect in BimContext
   };
 
   const handleLODHoursMapChange = (lod: LODLevel, type: 'min' | 'max', value: number) => {
@@ -47,6 +46,7 @@ export function BasicSettingsForm() {
       if (lod === selectedLOD) {
         const newActualMin = newMap[lod].min;
         const newActualMax = newMap[lod].max;
+        // Adjust actualLODHoursForSelected if it falls outside the new min/max range for the selectedLOD
         if (actualLODHoursForSelected < newActualMin) {
           setActualLODHoursForSelected(newActualMin);
         } else if (actualLODHoursForSelected > newActualMax) {
@@ -57,7 +57,7 @@ export function BasicSettingsForm() {
     });
   };
 
-  const lodOptionsToDisplay = suggestedLodsForSelect.length > 0 ? suggestedLodsForSelect : ALL_LOD_LEVELS;
+  const lodOptionsToDisplay = suggestedLodsForSelect.length > 0 && suggestedLodsForSelect[0] !== undefined ? suggestedLodsForSelect : ALL_LOD_LEVELS;
 
   return (
     <SectionCard title="Configuración Básica" description="Define los parámetros iniciales para tu presupuesto." icon={Settings}>
@@ -137,7 +137,7 @@ export function BasicSettingsForm() {
               ))}
             </SelectContent>
           </Select>
-          {suggestedLodsForSelect.length > 0 && lodOptionsToDisplay !== ALL_LOD_LEVELS && (
+          {suggestedLodsForSelect.length > 0 && lodOptionsToDisplay !== ALL_LOD_LEVELS && ( // Show hint only when suggestions are active and different from all LODs
             <p className="text-xs text-muted-foreground">LODs sugeridos basados en los Usos BIM seleccionados.</p>
           )}
         </div>
@@ -148,7 +148,7 @@ export function BasicSettingsForm() {
             <h3 className="text-lg font-semibold flex items-center"><SlidersHorizontal className="mr-2 h-5 w-5 text-primary" />Ajuste de Horas para {selectedLOD}</h3>
             <p className="text-sm text-muted-foreground">Modifica las horas base para el {selectedLOD} seleccionado si es necesario. Estos valores son referencias que puedes ajustar según la complejidad del proyecto.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[selectedLOD].map((lod) => ( // Iterate only over the selectedLOD
+              {[selectedLOD].map((lod) => ( 
                 <Card key={lod} className={'border-primary shadow-lg'}>
                   <CardHeader>
                     <CardTitle className="text-md">{lod}</CardTitle>
@@ -193,12 +193,12 @@ export function BasicSettingsForm() {
           <Slider
             id="actualLODHours"
             min={currentLODHours.min}
-            max={currentLODHours.max === currentLODHours.min ? currentLODHours.min + 1 : currentLODHours.max} // Ensure max > min for slider
+            max={currentLODHours.max === currentLODHours.min ? currentLODHours.min + 1 : currentLODHours.max} 
             step={0.5}
             value={[actualLODHoursForSelected]}
             onValueChange={(value) => setActualLODHoursForSelected(value[0])}
             className="mt-2"
-            disabled={currentLODHours.min === currentLODHours.max}
+            disabled={currentLODHours.min === currentLODHours.max && currentLODHours.min === 0} // Disable if min and max are 0
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Min: {currentLODHours.min.toFixed(1)}h</span>

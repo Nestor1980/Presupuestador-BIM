@@ -24,7 +24,6 @@ export function BimUsesSelection() {
   };
 
   const isUsoBimDisabled = (uso: UsoBIM): boolean => {
-    // A BIM Use is disabled if any of its dependencies are not met (i.e., not in selectedBimUses)
     return uso.dependencias.some(depId => !selectedBimUses.has(depId));
   };
   
@@ -52,9 +51,9 @@ export function BimUsesSelection() {
                   <ScrollArea className="h-[400px] pr-3">
                     <div className="space-y-3">
                       {usosByPhase(phase).map(uso => {
-                        const isDisabledByDependency = isUsoBimDisabled(uso); // Disabled if dependencies not met
+                        const isDisabledByDependency = isUsoBimDisabled(uso); 
                         const isChecked = selectedBimUses.has(uso.id);
-                        const isLodCompatibleWithGlobalLod = selectedLOD ? uso.lods_sugeridos.includes(selectedLOD) : true; // Assume compatible if no LOD selected yet
+                        const isLodCompatibleWithGlobalLod = selectedLOD ? uso.lods_sugeridos.includes(selectedLOD) : true; 
                         const isHighlightedAsDependency = highlightedDependencies.has(uso.id) && isChecked;
                         
                         let tooltipContent = `ID: ${uso.id}\nLODs Sugeridos: ${uso.lods_sugeridos.join(', ')}\nDependencias: ${getDependencyNames(uso.dependencias)}`;
@@ -64,6 +63,10 @@ export function BimUsesSelection() {
                         if (isChecked && selectedLOD && !isLodCompatibleWithGlobalLod) {
                            tooltipContent += `\n\nADVERTENCIA: El LOD ${selectedLOD} seleccionado globalmente no está entre los sugeridos para este Uso BIM.`;
                         }
+                        if (isHighlightedAsDependency) {
+                            tooltipContent += `\n\nDESTACADO: Este Uso BIM es una dependencia requerida por otras selecciones.`;
+                        }
+
 
                         return (
                           <Tooltip key={uso.id} delayDuration={300}>
@@ -72,7 +75,7 @@ export function BimUsesSelection() {
                                 "flex items-start space-x-2 p-2 rounded-md transition-colors",
                                 isChecked ? 'bg-accent/20' : 'hover:bg-muted/50',
                                 isDisabledByDependency && !isChecked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
-                                isHighlightedAsDependency ? 'border-2 border-blue-400 shadow-md' : '' // Highlight for dependencies
+                                isHighlightedAsDependency ? 'border-2 border-blue-500 shadow-lg' : '' 
                               )}>
                                 <Checkbox
                                   id={`uso-${uso.id}`}
@@ -106,6 +109,11 @@ export function BimUsesSelection() {
                                   ADVERTENCIA: El LOD {selectedLOD} seleccionado globalmente no está entre los sugeridos ({uso.lods_sugeridos.join(', ')}) para este Uso BIM.
                                 </p>
                               )}
+                               {isHighlightedAsDependency && (
+                                <p className="text-blue-600 font-medium mt-1">
+                                  DESTACADO: Requerido por otra selección.
+                                </p>
+                              )}
                             </TooltipContent>
                           </Tooltip>
                         );
@@ -123,7 +131,7 @@ export function BimUsesSelection() {
         Los Usos BIM cuyas dependencias no estén cumplidas aparecerán deshabilitados.
         Coloca el cursor sobre el icono <Info className="inline h-3 w-3" /> para más detalles sobre LODs sugeridos y dependencias.
         Un icono <AlertTriangle className="inline h-3 w-3 text-amber-500" /> indica si un Uso BIM seleccionado no es ideal para el LOD globalmente elegido.
-        Los usos BIM que son dependencias de otros seleccionados aparecerán resaltados.
+        Los usos BIM que son dependencias de otros seleccionados aparecerán resaltados con un borde azul.
       </p>
     </SectionCard>
   );
