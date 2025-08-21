@@ -3,11 +3,13 @@ import { useBimContext } from '@/contexts/BimContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { DELIVERABLES_CATEGORIES, BIM_USES_DATA } from '@/config/constants';
+import { DELIVERABLES_BY_BIM_USE, BIM_USES_DATA } from '@/config/constants';
 import { SectionCard } from './SectionCard';
 import { FileText, DollarSign, Download, ListChecks, Calculator, RotateCcw } from 'lucide-react';
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
 
 export function DeliverablesSummary() {
   const { 
@@ -63,11 +65,10 @@ export function DeliverablesSummary() {
 
   const getSelectedBimUsesDetails = () => {
     return Array.from(selectedBimUses).map(id => {
-      const use = BIM_USES_DATA.find(u => u.id === id);
-      return use ? `${use.id}. ${use.nombre}` : `ID ${id} (desconocido)`;
-    });
+      return BIM_USES_DATA.find(u => u.id === id);
+    }).filter(Boolean); // Filter out undefined if a use is not found
   };
-
+  
   const selectedUsesDetails = getSelectedBimUsesDetails();
 
   return (
@@ -131,42 +132,41 @@ export function DeliverablesSummary() {
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <ListChecks className="mr-2 h-6 w-6 text-primary" /> Entregables Sugeridos
+              <ListChecks className="mr-2 h-6 w-6 text-primary" /> Entregables Sugeridos por Uso BIM
             </CardTitle>
             <CardDescription>Basado en el LOD y los Usos BIM seleccionados.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 max-h-[400px] overflow-y-auto">
-            <div>
-              <h4 className="font-semibold mb-1">Usos BIM Seleccionados:</h4>
-              {selectedUsesDetails.length > 0 ? (
-                <ul className="list-disc list-inside text-sm space-y-1">
-                  {selectedUsesDetails.map(detail => <li key={detail}>{detail}</li>)}
-                </ul>
+             {selectedUsesDetails.length > 0 ? (
+                <Accordion type="single" collapsible className="w-full">
+                  {selectedUsesDetails.map(use => {
+                    const deliverables = DELIVERABLES_BY_BIM_USE[use!.id];
+                    const isLodCompatible = use!.lods_sugeridos.includes(selectedLOD);
+                    return (
+                       <AccordionItem value={use!.id} key={use!.id}>
+                        <AccordionTrigger className={!isLodCompatible ? 'text-destructive' : ''}>
+                          {use!.id}. {use!.nombre}
+                          {!isLodCompatible && <span className="text-xs ml-2">(LOD no óptimo)</span>}
+                        </AccordionTrigger>
+                        <AccordionContent className="text-xs space-y-1 pl-2">
+                          {deliverables ? (
+                            <>
+                              <p><strong>Gráfica:</strong> {deliverables.grafica}</p>
+                              <p><strong>Datos/Gestión:</strong> {deliverables.datosGestion}</p>
+                              <p><strong>Técnica/Proyecto:</strong> {deliverables.tecnicaProyecto}</p>
+                              <p><strong>O&M:</strong> {deliverables.om}</p>
+                            </>
+                          ) : (
+                            <p className="text-muted-foreground">No hay entregables específicos definidos para este uso.</p>
+                          )}
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
               ) : (
-                <p className="text-sm text-muted-foreground">Ningún Uso BIM seleccionado.</p>
+                <p className="text-sm text-muted-foreground text-center py-4">Selecciona uno o más Usos BIM para ver los entregables sugeridos.</p>
               )}
-            </div>
-            <Separator />
-            {DELIVERABLES_CATEGORIES.map(category => (
-              <div key={category.category}>
-                <h4 className="font-semibold mb-1">{category.category}</h4>
-                <ul className="list-disc list-inside text-sm space-y-1">
-                  {category.items.map(item => <li key={item}>{item}</li>)}
-                </ul>
-              </div>
-            ))}
-             <Separator />
-             <div>
-                <h4 className="font-semibold mb-1">Parámetros del Modelo (Ejemplos para {selectedLOD}):</h4>
-                <p className="text-sm text-muted-foreground">
-                  {selectedLOD === "LoD 100" && "Parámetros básicos de área, volumen, ubicación, orientación."}
-                  {selectedLOD === "LoD 200" && "Tipos genéricos de elementos, cantidades aproximadas, sistemas principales."}
-                  {selectedLOD === "LoD 300" && "Dimensiones específicas, materiales, información de fabricante (genérica), atributos de rendimiento."}
-                  {selectedLOD === "LoD 350" && "Detalles de conexión, interfaces entre sistemas, información para coordinación detallada."}
-                  {selectedLOD === "LoD 400" && "Información para fabricación y montaje, tolerancias, instrucciones específicas."}
-                  {selectedLOD === "LoD 500" && "Modelo As-Built verificado, datos para operación y mantenimiento, garantías, manuales."}
-                </p>
-             </div>
           </CardContent>
         </Card>
       </div>

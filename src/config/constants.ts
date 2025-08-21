@@ -62,42 +62,38 @@ export const INITIAL_DOLLAR_EXCHANGE_RATE = 1; // Default 1:1 if not specified
 export const INITIAL_SURFACE_M2 = 50;
 export const INITIAL_LOD: LODLevel = "LoD 300";
 
-export const DELIVERABLES_CATEGORIES = [
-  {
-    category: "Documentación Gráfica",
-    items: [
-      "Planos 2D extraídos del modelo BIM (plantas, cortes, vistas, fachadas).",
-      "Diagramas y esquemas (redes de instalaciones, detalles constructivos).",
-      "Tablas de planificación generadas automáticamente desde el modelo.",
-    ],
-  },
-  {
-    category: "Documentación de Datos y Gestión de Información",
-    items: [
-      "Plan de Ejecución BIM (BEP): Documento que define cómo se implementará BIM en el proyecto.",
-      "EIR (Exchange Information Requirements): Documento con los requerimientos de información esperados en cada fase.",
-      "Modelo de Información del Activo (AIM - Asset Information Model): Conjunto de datos para la operación y mantenimiento del edificio.",
-    ],
-  },
-  {
-    category: "Documentación Técnica y de Gestión del Proyecto",
-    items: [
-      "Especificaciones técnicas vinculadas a los elementos modelados.",
-      "Memorias descriptivas y cálculos de estructuras e instalaciones.",
-      "Cronogramas y planificación 4D (integración de modelos con planificación).",
-      "Presupuestos y estimaciones 5D (asociación de costos a elementos del modelo).",
-    ],
-  },
-  {
-    category: "Documentación para Operación y Mantenimiento (O&M)",
-    items: [
-      "Manuales de operación y mantenimiento.",
-      "Registros de garantía y fichas técnicas de los equipos e instalaciones.",
-      "Historial de mantenimiento y documentación de revisiones.",
-      "COBie (Construction-Operations Building Information Exchange) (si aplica)",
-    ],
-  },
-];
+export const DELIVERABLES_BY_BIM_USE: { [key: string]: { grafica: string; datosGestion: string; tecnicaProyecto: string; om: string; } } = {
+  // Planificación
+  "1": { grafica: "Modelo topográfico conceptual, curvas de nivel.", datosGestion: "Cuadro de superficies y cotas principales.", tecnicaProyecto: "Informe de condiciones iniciales del sitio.", om: "No aplica en esta etapa." },
+  "2": { grafica: "Diagramas volumétricos de referencia.", datosGestion: "Estimación de cantidades preliminares (BoQ paramétrico).", tecnicaProyecto: "Presupuesto estimativo.", om: "No aplica." },
+  "3": { grafica: "Gantt esquemático vinculado a hitos.", datosGestion: "Secuenciación preliminar de obra.", tecnicaProyecto: "Informe de planificación de fases.", om: "No aplica." },
+  "4": { grafica: "Layouts conceptuales, diagramas de ocupación.", datosGestion: "Planillas de áreas funcionales.", tecnicaProyecto: "Reporte de cumplimiento con programa.", om: "No aplica." }, // Asumiendo que Programación es Distribución de Espacios
+  "5": { grafica: "Mapas de asoleamiento, orientación, accesibilidad.", datosGestion: "Parámetros de localización (coordenadas, normativas aplicables).", tecnicaProyecto: "Informe de viabilidad del sitio.", om: "No aplica." },
+  // Diseño
+  "6": { grafica: "Modelos en desarrollo (LOD 200–300).", datosGestion: "Informes de revisiones y comentarios.", tecnicaProyecto: "Registro de issues de diseño.", om: "No aplica aún." }, // Asumiendo Auditoria de Diseño es Revisión de Diseño
+  "7": { grafica: "Modelos disciplinares (ARQ, STR, MEP).", datosGestion: "Listas de componentes y sistemas preliminares.", tecnicaProyecto: "Informe de diseño y memoria descriptiva.", om: "No aplica aún." }, // Asumiendo Revisión de Diseño es Modelo de Diseño
+  "8": { grafica: "Esquemas de cargas y deformaciones.", datosGestion: "Resultados numéricos de cálculo.", tecnicaProyecto: "Informe de cálculo estructural.", om: "No aplica." },
+  "9": { grafica: "Mapas de lux, renderizados.", datosGestion: "Valores de iluminancia por espacio.", tecnicaProyecto: "Informe técnico de iluminación natural/artificial.", om: "No aplica." },
+  "10": { grafica: "Diagramas de consumo energético.", datosGestion: "Tablas de simulación energética.", tecnicaProyecto: "Informe comparativo de escenarios.", om: "No aplica." },
+  "11": { grafica: "Diagramas de flujos de aire.", datosGestion: "Listas de cargas térmicas.", tecnicaProyecto: "Informe de cálculo HVAC.", om: "No aplica." }, // Análisis mecánico as HVAC
+  "12": { grafica: "Diagramas específicos (acústica, fuego, etc.).", datosGestion: "Resultados numéricos.", tecnicaProyecto: "Informes técnicos especializados.", om: "No aplica." },
+  "13": { grafica: "Diagramas de huella ambiental.", datosGestion: "Tablas de emisiones, consumo de recursos.", tecnicaProyecto: "Informe LEED/BREEAM preliminar.", om: "No aplica." },
+  "14": { grafica: "Planos de cumplimiento normativo.", datosGestion: "Checklist normativos.", tecnicaProyecto: "Informe de cumplimiento de códigos.", om: "No aplica." },
+  "15": { grafica: "Modelo federado.", datosGestion: "Reportes de clash detection.", tecnicaProyecto: "Informe de coordinación.", om: "No aplica." }, // Coordinación 3D
+  // Construcción
+  "16": { grafica: "Secuencia 4D.", datosGestion: "Cronograma detallado.", tecnicaProyecto: "Informe de planificación ejecutiva.", om: "No aplica." },
+  "17": { grafica: "Modelos 3D para montaje/VR.", datosGestion: "Catálogo digital de componentes.", tecnicaProyecto: "Guías de montaje.", om: "No aplica." }, // Diseño de sistemas constructivos
+  "18": { grafica: "Planos de taller.", datosGestion: "Listas de corte y fabricación.", tecnicaProyecto: "Archivos CNC/impresión 3D.", om: "No aplica." },
+  "19": { grafica: "Puntos topográficos y de control.", datosGestion: "Archivos de replanteo (CSV, XML).", tecnicaProyecto: "Reportes de verificación en sitio.", om: "No aplica." }, // Control y planificación de obra
+  "20": { grafica: "Modelo actualizado (LOD 400/500).", datosGestion: "Listas finales de equipos y materiales.", tecnicaProyecto: "Planos finales de obra.", om: "Base para COBie y Facility Management." },
+  // Operación
+  "21": { grafica: "Diagramas de ciclo de mantenimiento.", datosGestion: "Calendarios y protocolos preventivos.", tecnicaProyecto: "Manual de mantenimiento.", om: "Registro en plataforma de gestión de activos." }, // Programación de mantenimiento
+  "22": { grafica: "Dashboards de desempeño.", datosGestion: "KPIs de uso energético y funcionamiento.", tecnicaProyecto: "Informes comparativos de performance.", om: "Ajustes de operación." }, // Análisis de sistemas
+  "23": { grafica: "Mapas de localización de activos.", datosGestion: "Inventarios y fichas de equipos.", tecnicaProyecto: "Reportes financieros asociados a activos.", om: "Integración con ERP/CMMS." },
+  "24": { grafica: "Planos de ocupación.", datosGestion: "Listados de usuarios y espacios asignados.", tecnicaProyecto: "Reportes de uso de espacios.", om: "Actualización de layout." },
+  "25": { grafica: "Rutas de evacuación, planos de seguridad.", datosGestion: "Protocolos y fichas de riesgos.", tecnicaProyecto: "Plan de contingencia documentado.", om: "Integración con protocolos de seguridad." },
+};
+
 
 export const LOD_DESCRIPTIONS: {
   [key in LODLevel]?: {
@@ -137,12 +133,3 @@ export const LOD_DESCRIPTIONS: {
     bimForum: "LOD 500 does not indicate a higher level than LOD 400, rather it indicates that the element’s geometry is determined through observation of an existing item rather than design of a future item. The LOD 500 definition requires that the model element’s accuracy be specified – BIMForum recommends USIBD’s Level of Accuracy (LOA) Specification for this purpose."
   }
 };
-
-// Removed LOD_REFERENCE_TEXT
-// export const LOD_REFERENCE_TEXT = {
-//   aia: "AIA Contract Document E201-2022, BIM Exhibit for Sharing Models with Project Participants, Where Model Versions May be Enumerated as a Contract Document. The LOD definitions are used by permission. Copyright © 2022. ACD Operations, LLC. All rights reserved.",
-//   bimForumSpec: "Level of Development Specification Version: 2024 Part I PUBLIC COMMENT DRAFT. www.bimforum.org/lod",
-//   bimForumFeedback: "Post feedback/comments to https://form.jotform.com/233625210758051",
-//   bimForumCopyright: "Copyright © 2024 BIMForum. All rights reserved. This document is copyrighted under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License."
-// };
-
