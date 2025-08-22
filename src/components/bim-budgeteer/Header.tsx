@@ -1,11 +1,21 @@
 import { Building } from 'lucide-react';
+import Image from 'next/image';
 
 export function Header() {
   return (
     <header className="bg-primary text-primary-foreground shadow-md">
-      <div className="container mx-auto px-4 py-6 flex items-center space-x-3">
-        <Building size={36} />
-        <h1 className="text-3xl font-bold tracking-tight">BIM Budgeteer</h1>
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <Building size={36} />
+          <h1 className="text-3xl font-bold tracking-tight">BIM Budgeteer</h1>
+        </div>
+        <Image 
+          src="/logo.png" 
+          alt="Company Logo" 
+          width={80} 
+          height={80} 
+          className="rounded-md"
+        />
       </div>
     </header>
   );

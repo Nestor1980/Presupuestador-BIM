@@ -28,17 +28,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <head>
-        <style>
-          {`
-          .logo {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-          }
-        `}
-        </style>
-      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <BimProvider>
           {children}
