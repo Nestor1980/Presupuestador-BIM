@@ -1,8 +1,7 @@
 
-
 import type {Metadata} from 'next';
-import type { ReactNode } from 'react'; // Import ReactNode type
-import { Geist, Geist_Mono } from 'next/font/google'; // Corrected import for Geist font
+import type { ReactNode } from 'react';
+import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { BimProvider } from '@/contexts/BimContext';
 import { Toaster } from '@/components/ui/toaster';
@@ -25,10 +24,21 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: ReactNode; // Changed from React.ReactNode
+  children: ReactNode;
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
+      <head>
+        <style>
+          {`
+          .logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+          }
+        `}
+        </style>
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <BimProvider>
           {children}
@@ -38,5 +48,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-    
