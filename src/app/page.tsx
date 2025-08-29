@@ -5,8 +5,9 @@ import { BasicSettingsForm } from '@/components/bim-budgeteer/BasicSettingsForm'
 import { BimUsesSelection } from '@/components/bim-budgeteer/BimUsesSelection';
 import { LodVisualization } from '@/components/bim-budgeteer/LodVisualization';
 import { DeliverablesSummary } from '@/components/bim-budgeteer/DeliverablesSummary';
+import { ArchitectureDiagram } from '@/components/bim-budgeteer/ArchitectureDiagram';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Workflow, Layers, FileText } from 'lucide-react';
+import { Settings, Workflow, Layers, FileText, Share2 } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -14,11 +15,12 @@ export default function Home() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         <Tabs defaultValue="settings" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8">
             <TabsTrigger value="settings" className="flex items-center gap-2"><Settings className="h-4 w-4"/>Configuración</TabsTrigger>
             <TabsTrigger value="bimUses" className="flex items-center gap-2"><Workflow className="h-4 w-4"/>Usos BIM</TabsTrigger>
             <TabsTrigger value="lodViz" className="flex items-center gap-2"><Layers className="h-4 w-4"/>Visualización LOD</TabsTrigger>
             <TabsTrigger value="summary" className="flex items-center gap-2"><FileText className="h-4 w-4"/>Resumen</TabsTrigger>
+            <TabsTrigger value="architecture" className="flex items-center gap-2"><Share2 className="h-4 w-4"/>Arquitectura</TabsTrigger>
           </TabsList>
 
           <TabsContent value="settings">
@@ -32,6 +34,9 @@ export default function Home() {
           </TabsContent>
           <TabsContent value="summary">
             <DeliverablesSummary />
+          </TabsContent>
+           <TabsContent value="architecture">
+            <ArchitectureDiagram />
           </TabsContent>
         </Tabs>
       </main>
