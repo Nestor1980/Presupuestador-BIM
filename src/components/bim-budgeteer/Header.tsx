@@ -1,5 +1,4 @@
 import { Building } from 'lucide-react';
-import Image from 'next/image';
 
 export function Header() {
   return (
@@ -8,15 +7,6 @@ export function Header() {
         <div className="flex items-center space-x-3">
           <Building size={36} />
           <h1 className="text-3xl font-bold tracking-tight">BIM Budgeteer</h1>
-        </div>
-        <div>
-          <Image
-            src="/logo.png"
-            alt="Company Logo"
-            width={160}
-            height={80}
-            style={{ objectFit: 'contain' }}
-          />
         </div>
       </div>
     </header>
