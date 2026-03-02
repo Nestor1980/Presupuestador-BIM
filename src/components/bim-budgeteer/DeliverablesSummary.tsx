@@ -9,7 +9,9 @@ import { FileText, DollarSign, Download, ListChecks, Calculator, RotateCcw } fro
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-
+import { jsPDF } from "jspdf"; // IMPORTANTE: Importar jsPDF así
+//import "jspdf-autotable"; // Importar el plugin
+//import { UserOptions } from 'jspdf-autotable'; // Opcional, para tipado
 
 export function DeliverablesSummary() {
   const { 
@@ -33,17 +35,61 @@ export function DeliverablesSummary() {
     calculateTotalCost();
   }, [valorBasico, regionPercentage, actualLODHoursForSelected, dollarExchangeRate, calculateTotalCost]);
 
+// --- NUEVA LÓGICA DE PDF AQUÍ ---
+  const handleDownloadPDF = async () => {
+  // Importaciones dinámicas con await — esto garantiza que autoTable
+  // se registre DESPUÉS de que jsPDF esté disponible en el cliente
+  const jsPDFModule = await import("jspdf");
+  const jsPDF = jsPDFModule.jsPDF;
+  const autoTable = (await import("jspdf-autotable")).default;
 
-  const handleDownloadPDF = () => {
-    // Placeholder for PDF generation logic
-    // This would typically involve a library like jsPDF or a backend service
-    alert("La funcionalidad de descarga de PDF aún no está implementada.");
-    toast({
-      title: "Descarga PDF",
-      description: "La funcionalidad de descarga de PDF está en desarrollo.",
-      variant: "default",
-    });
-  };
+  const doc = new jsPDF();
+
+  // Registrar manualmente el plugin en la instancia
+  autoTable(doc, {
+    startY: 65,
+    head: [['Uso BIM', 'Entregable Gráfico', 'Entregable Técnico']],
+    body: Array.from(selectedBimUses).map(id => {
+      const use = BIM_USES_DATA.find(u => u.id === id);
+      const delivs = DELIVERABLES_BY_BIM_USE[id];
+      return [
+        use?.nombre || "Desconocido",
+        delivs?.grafica || "-",
+        delivs?.tecnicaProyecto || "-"
+      ];
+    }),
+    theme: 'grid',
+    headStyles: { fillColor: [40, 116, 166] },
+  });
+
+  // Título principal
+  doc.setFontSize(20);
+  doc.text("Resumen de Presupuesto BIM", 14, 20);
+
+  // Información General
+  doc.setFontSize(12);
+  doc.text(`Proyecto: ${projectName || "Sin nombre"}`, 14, 30);
+  doc.text(`LOD Seleccionado: ${selectedLOD}`, 14, 38);
+  doc.text(`Horas Totales: ${actualLODHoursForSelected.toFixed(1)} h`, 14, 46);
+
+  // Costo Total destacado
+  doc.setFontSize(14);
+  doc.setTextColor(40, 116, 166);
+  doc.text(
+    `Costo Total: $${totalCostUSD?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`,
+    14, 56
+  );
+  doc.setTextColor(0, 0, 0);
+
+  doc.save(`Presupuesto_${projectName || "BIM"}.pdf`);
+
+  toast({
+    title: "PDF Generado",
+    description: "El resumen ha sido descargado exitosamente.",
+    variant: "default",
+  });
+};
+  // ---------------------------------
   
   const handleCalculateClick = () => {
     calculateTotalCost();
@@ -81,7 +127,7 @@ export function DeliverablesSummary() {
           <Button onClick={handleCalculateClick} variant="outline" size="sm">
             <Calculator className="mr-2 h-4 w-4" /> Calcular
           </Button>
-           <Button onClick={handleResetClick} variant="outline" size="sm" className="text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive">
+            <Button onClick={handleResetClick} variant="outline" size="sm" className="text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive">
             <RotateCcw className="mr-2 h-4 w-4" /> Resetear
           </Button>
         </div>
@@ -123,7 +169,7 @@ export function DeliverablesSummary() {
           </CardContent>
           <CardFooter>
             <Button onClick={handleDownloadPDF} className="w-full" variant="default">
-              <Download className="mr-2 h-4 w-4" /> Descargar Resumen PDF (Próximamente)
+              <Download className="mr-2 h-4 w-4" /> Descargar Resumen PDF
             </Button>
           </CardFooter>
         </Card>
